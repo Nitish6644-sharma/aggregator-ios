@@ -71,12 +71,17 @@ struct ShareEntryView: View {
         let trimmedSource = source.trimmingCharacters(in: .whitespacesAndNewlines)
         let trimmedNotes = notes.trimmingCharacters(in: .whitespacesAndNewlines)
 
+        var finalTags = tags
+        if let sourceTag = Item.sourceTag(from: trimmedSource), !finalTags.contains(sourceTag) {
+            finalTags.insert(sourceTag, at: 0)
+        }
+
         let item = Item(
             url: trimmedURL,
             title: trimmedTitle.isEmpty ? trimmedURL : trimmedTitle,
             source: trimmedSource,
             notes: trimmedNotes.isEmpty ? nil : trimmedNotes,
-            tags: tags
+            tags: finalTags
         )
         modelContext.insert(item)
         try? modelContext.save()

@@ -6,9 +6,15 @@ import UIKit
 /// so nothing shifts on resolve), content on the right, unread dot top-right.
 struct CardView: View {
     let item: Item
+    var isEditing: Bool = false
+    var isSelected: Bool = false
 
     var body: some View {
-        HStack(alignment: .top, spacing: 12) {
+        HStack(alignment: .top, spacing: 11) {
+            if isEditing {
+                selectionCircle
+            }
+
             thumbnail
                 .frame(width: 56, height: 56)
                 .clipShape(.rect(cornerRadius: 12))
@@ -33,7 +39,7 @@ struct CardView: View {
                             .foregroundStyle(Theme.teal)
                             .padding(.horizontal, 8)
                             .padding(.vertical, 3)
-                            .background(Theme.tealTint, in: .rect(cornerRadius: 6))
+                            .background(isSelected ? Color.white : Theme.tealTint, in: .rect(cornerRadius: 6))
                     }
                     Text(item.dateAdded.cardFormatted)
                         .font(.caption)
@@ -49,7 +55,7 @@ struct CardView: View {
                                     .foregroundStyle(Theme.ink2)
                                     .padding(.horizontal, 9)
                                     .padding(.vertical, 4)
-                                    .background(Theme.pill, in: .capsule)
+                                    .background(isSelected ? Color.white : Theme.pill, in: .capsule)
                             }
                         }
                     }
@@ -58,9 +64,25 @@ struct CardView: View {
         }
         .padding(12)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Theme.card, in: .rect(cornerRadius: 14))
-        .overlay(RoundedRectangle(cornerRadius: 14).stroke(Theme.line, lineWidth: 1))
-        .opacity(item.isRead ? 0.55 : 1)   // read = muted; tap/long-press unchanged
+        .background(isSelected ? Theme.tealTint : Theme.card, in: .rect(cornerRadius: 14))
+        .overlay(RoundedRectangle(cornerRadius: 14).stroke(isSelected ? Theme.teal : Theme.line, lineWidth: isSelected ? 2 : 1))
+        .opacity(item.isRead ? 0.55 : 1)
+    }
+
+    private var selectionCircle: some View {
+        ZStack {
+            Circle()
+                .fill(isSelected ? Theme.teal : Color.clear)
+            Circle()
+                .stroke(isSelected ? Theme.teal : Theme.line, lineWidth: 2)
+            if isSelected {
+                Image(systemName: "checkmark")
+                    .font(.system(size: 11, weight: .bold))
+                    .foregroundStyle(.white)
+            }
+        }
+        .frame(width: 21, height: 21)
+        .padding(.top, 2)
     }
 
     @ViewBuilder private var thumbnail: some View {

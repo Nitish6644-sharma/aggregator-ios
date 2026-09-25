@@ -13,9 +13,17 @@ struct HomeFeedView: View {
     @State private var selectedItem: Item?
     @State private var itemPendingDelete: Item?
 
+    // Multi-select state
+    @State private var isEditing = false
+    @State private var selectedIDs: Set<UUID> = []
+    @State private var showingBatchDeleteAlert = false
+
     var body: some View {
         NavigationStack {
-            Group {
+            VStack(spacing: 0) {
+                if !allSources.isEmpty {
+                    sourceChipsRow
+                }
                 if items.isEmpty {
                     EmptyStateView()
                 } else if filteredItems.isEmpty {
@@ -25,14 +33,17 @@ struct HomeFeedView: View {
                 }
             }
             .background(Theme.bg)
-            .navigationTitle("Saved")
+            .navigationTitle(isEditing
+                ? (selectedIDs.isEmpty ? "Select Items" : "\(selectedIDs.count) Selected")
+                : "Saved")
+            .navigationBarTitleDisplayMode(isEditing ? .inline : .large)
             .searchable(text: $searchText, prompt: "Search title, source, notes")
-            .toolbar { filterToolbarItem }
+            .toolbar { toolbarContent }
             .navigationDestination(item: $selectedItem) { item in
                 ItemDetailView(item: item, allTags: allTags)
             }
             .sheet(isPresented: $showingFilter) {
-                FilterSheetView(allTags: allTags, allSources: allSources, filter: $filter)
+                FilterSheetView(allTags: allTags, filter: $filter)
             }
             .alert("Delete this item?", isPresented: deleteAlertBinding) {
                 Button("Delete", role: .destructive) {
@@ -42,6 +53,12 @@ struct HomeFeedView: View {
             } message: {
                 Text("This cannot be undone. The link and its notes will be permanently removed.")
             }
+            .alert(batchDeleteTitle, isPresented: $showingBatchDeleteAlert) {
+                Button("Delete", role: .destructive) { batchDelete() }
+                Button("Cancel", role: .cancel) {}
+            } message: {
+                Text("This cannot be undone.")
+            }
         }
         .tint(Theme.teal)
         .task { await reload() }
@@ -49,8 +66,6 @@ struct HomeFeedView: View {
             if phase == .active { Task { await reload() } }
         }
         .onChange(of: selectedItem) { _, item in
-            // Returning from the detail view (edit/delete) — re-sync the feed
-            // so deleted objects aren't rendered stale and edits/sort update.
             if item == nil { refresh() }
         }
     }
@@ -58,29 +73,105 @@ struct HomeFeedView: View {
     private var feedList: some View {
         List {
             ForEach(filteredItems) { item in
-                CardView(item: item)
+                CardView(item: item, isEditing: isEditing, isSelected: selectedIDs.contains(item.id))
                     .contentShape(Rectangle())
-                    .onTapGesture { open(item) }
-                    .onLongPressGesture(minimumDuration: 0.4) { selectedItem = item }
+                    .onTapGesture {
+                        if isEditing {
+                            toggleSelection(item)
+                        } else {
+                            open(item)
+                        }
+                    }
+                    .onLongPressGesture(minimumDuration: 0.4) {
+                        if !isEditing { selectedItem = item }
+                    }
                     .listRowSeparator(.hidden)
                     .listRowBackground(Color.clear)
                     .listRowInsets(EdgeInsets(top: 5, leading: 14, bottom: 5, trailing: 14))
-                    .swipeActions(edge: .leading, allowsFullSwipe: true) {
-                        Button { toggleRead(item) } label: {
-                            Label(item.isRead ? "Unread" : "Read",
-                                  systemImage: item.isRead ? "circle" : "checkmark.circle")
+                    .swipeActions(edge: .leading, allowsFullSwipe: !isEditing) {
+                        if !isEditing {
+                            Button { toggleRead(item) } label: {
+                                Label(item.isRead ? "Unread" : "Read",
+                                      systemImage: item.isRead ? "circle" : "checkmark.circle")
+                            }
+                            .tint(Theme.teal)
                         }
-                        .tint(Theme.teal)
                     }
                     .swipeActions(edge: .trailing, allowsFullSwipe: false) {
-                        Button(role: .destructive) { itemPendingDelete = item } label: {
-                            Label("Delete", systemImage: "trash")
+                        if !isEditing {
+                            Button(role: .destructive) { itemPendingDelete = item } label: {
+                                Label("Delete", systemImage: "trash")
+                            }
                         }
                     }
             }
         }
         .listStyle(.plain)
         .scrollContentBackground(.hidden)
+    }
+
+    // MARK: - Toolbar
+
+    @ToolbarContentBuilder
+    private var toolbarContent: some ToolbarContent {
+        if isEditing {
+            // Leading: Select All / Deselect All
+            ToolbarItem(placement: .topBarLeading) {
+                let allSelected = !filteredItems.isEmpty && selectedIDs.count == filteredItems.count
+                Button(allSelected ? "Deselect All" : "Select All") {
+                    withAnimation {
+                        if allSelected {
+                            selectedIDs.removeAll()
+                        } else {
+                            selectedIDs = Set(filteredItems.map(\.id))
+                        }
+                    }
+                }
+            }
+            // Trailing: Done
+            ToolbarItem(placement: .topBarTrailing) {
+                Button("Done") {
+                    withAnimation(.easeInOut(duration: 0.2)) {
+                        isEditing = false
+                        selectedIDs.removeAll()
+                    }
+                }
+                .fontWeight(.semibold)
+            }
+            // Bottom bar batch actions
+            ToolbarItemGroup(placement: .bottomBar) {
+                Button(role: .destructive) {
+                    showingBatchDeleteAlert = true
+                } label: {
+                    Label("Delete", systemImage: "trash")
+                }
+                .disabled(selectedIDs.isEmpty)
+
+                Spacer()
+
+                Button { batchMarkRead() } label: {
+                    Label("Mark Read", systemImage: "checkmark.circle")
+                }
+                .disabled(selectedIDs.isEmpty)
+
+                Spacer()
+
+                Button { batchMarkUnread() } label: {
+                    Label("Mark Unread", systemImage: "circle")
+                }
+                .disabled(selectedIDs.isEmpty)
+            }
+        } else {
+            // Normal mode: Edit trailing + filter trailing
+            ToolbarItem(placement: .topBarTrailing) {
+                Button("Edit") {
+                    withAnimation(.easeInOut(duration: 0.2)) {
+                        isEditing = true
+                    }
+                }
+            }
+            filterToolbarItem
+        }
     }
 
     private var filterToolbarItem: some ToolbarContent {
@@ -99,6 +190,27 @@ struct HomeFeedView: View {
                     }
             }
         }
+    }
+
+    // MARK: - Source chips
+
+    private var sourceChipsRow: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 8) {
+                ForEach(allSources, id: \.self) { source in
+                    ChoiceChip(label: source, isOn: filter.sources.contains(source)) {
+                        if filter.sources.contains(source) {
+                            filter.sources.remove(source)
+                        } else {
+                            filter.sources.insert(source)
+                        }
+                    }
+                }
+            }
+            .padding(.horizontal, 14)
+            .padding(.vertical, 8)
+        }
+        .background(Theme.bg)
     }
 
     // MARK: - Derived data
@@ -129,7 +241,21 @@ struct HomeFeedView: View {
         Binding(get: { itemPendingDelete != nil }, set: { if !$0 { itemPendingDelete = nil } })
     }
 
+    private var batchDeleteTitle: String {
+        "Delete \(selectedIDs.count) item\(selectedIDs.count == 1 ? "" : "s")?"
+    }
+
     // MARK: - Actions
+
+    private func toggleSelection(_ item: Item) {
+        withAnimation(.easeInOut(duration: 0.15)) {
+            if selectedIDs.contains(item.id) {
+                selectedIDs.remove(item.id)
+            } else {
+                selectedIDs.insert(item.id)
+            }
+        }
+    }
 
     private func reload() async {
         refresh()
@@ -141,15 +267,10 @@ struct HomeFeedView: View {
         items = (try? modelContext.fetch(descriptor)) ?? []
     }
 
-    /// Fetch-once-and-cache: for items never attempted, fetch a preview image
-    /// (and auto-fill an empty title), store it, and mark as attempted so we
-    /// never re-fetch on subsequent launches.
     private func fetchMissingPreviews() async {
         let jobs = items.filter { !$0.previewFetchAttempted }.map { ($0.id, $0.url) }
         guard !jobs.isEmpty else { return }
 
-        // Fetch concurrently so shimmers resolve together, then apply results
-        // on the main actor.
         await withTaskGroup(of: (UUID, LinkPreviewFetcher.Result).self) { group in
             for (id, url) in jobs {
                 group.addTask { (id, await LinkPreviewFetcher.fetch(url)) }
@@ -186,5 +307,30 @@ struct HomeFeedView: View {
         try? modelContext.save()
         items.removeAll { $0.id == item.id }
         itemPendingDelete = nil
+    }
+
+    // MARK: - Batch actions
+
+    private func batchDelete() {
+        let targets = items.filter { selectedIDs.contains($0.id) }
+        targets.forEach { modelContext.delete($0) }
+        try? modelContext.save()
+        items.removeAll { selectedIDs.contains($0.id) }
+        selectedIDs.removeAll()
+        withAnimation { isEditing = false }
+    }
+
+    private func batchMarkRead() {
+        items.filter { selectedIDs.contains($0.id) }.forEach { $0.isRead = true }
+        try? modelContext.save()
+        selectedIDs.removeAll()
+        withAnimation { isEditing = false }
+    }
+
+    private func batchMarkUnread() {
+        items.filter { selectedIDs.contains($0.id) }.forEach { $0.isRead = false }
+        try? modelContext.save()
+        selectedIDs.removeAll()
+        withAnimation { isEditing = false }
     }
 }

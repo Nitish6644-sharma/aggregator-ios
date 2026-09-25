@@ -59,6 +59,17 @@ final class Item {
         return result
     }
 
+    /// Lowercase tag derived from a source name, suitable for auto-tagging.
+    /// "LinkedIn" → "linkedin", "Twitter/X" → "twitter", "nytimes.com" → "nytimes.com"
+    /// Returns nil when source is empty.
+    static func sourceTag(from source: String) -> String? {
+        let tag = source
+            .components(separatedBy: "/").first?
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .lowercased() ?? ""
+        return tag.isEmpty ? nil : tag
+    }
+
     /// Friendly source name derived from a URL's domain (no network).
     /// Returns "" if no host can be parsed (e.g. plain-text share).
     static func detectSource(from urlString: String) -> String {

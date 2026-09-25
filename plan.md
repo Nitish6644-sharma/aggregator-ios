@@ -134,6 +134,34 @@ Detail view keeps the **large 180pt banner image** (read mode). Fetch switched t
 - [x] ✅ verified on device (2026-09-22) — shimmer→resolve with no layout shift, source glyphs, large detail banner, read muting all working.
 - [x] Bugfix (2026-09-22): detail view overflowed horizontally — the 180pt banner used `scaledToFill` with a flexible frame and no `.clipped()`, ballooning layout width. Fixed with single bounded `.frame(maxWidth:.infinity, height:180).clipped()` + pinned content VStack to `maxWidth:.infinity`. (Feed thumbnail unaffected — fixed 56×56 frame.)
 
+## 4d. Phase 3 — Feature Plan (decided 2026-09-25)
+
+Four features added to the main feed and filter sheet. All offline except where noted.
+
+- **F1 · Multi-select + batch actions** — Edit button (trailing nav bar) enters multi-select mode. Navbar switches to inline "Select Items / N Selected" title, "Select All" leading, "Done" trailing. Each card shows a selection circle (left of thumbnail). Bottom toolbar: Delete (with count-aware confirmation alert) / Mark Read / Mark Unread. Swipe actions suppressed in edit mode. `HomeFeedView` + `CardView`.
+- **F2 · Auto source tag** — On new save, `Item.sourceTag(from:)` derives a lowercase tag from the detected source name ("LinkedIn" → `linkedin`, "Twitter/X" → `twitter`) and inserts it at position 0 in the tags array if not already present. New items only; if user deletes it, it stays gone. `Item.swift` + `ShareEntryView`.
+- **F3 · Source chips on main page** — Horizontal-scroll row of `ChoiceChip` pills pinned above the card list, driven directly by `filter.sources` (immediate, no draft). Sources section removed from `FilterSheetView`; `allSources` param dropped. Filter badge no longer counts sources (they're visible on-screen). `HomeFeedView` + `FilterSheetView`.
+- **F4 · Date filter in filter sheet** — New `DatePreset` enum (All / Today / Last 7 Days / Last 30 Days / Custom). Added to `FilterState` alongside `customDateFrom` / `customDateTo` fields. "DATE SAVED" section in filter sheet shows preset chips; selecting Custom reveals two `DatePicker` rows (From / To, both capped to today, To ≥ From). Filter badge counts date filter when not "All". Filters on `Item.dateAdded`. `FilterSheetView`.
+
+### Locked decisions
+| Decision | Choice |
+|---|---|
+| Multi-select entry | Edit button, nav bar trailing |
+| Batch delete | Confirmation alert with item count |
+| Select All | Yes, in nav bar leading while editing |
+| Auto source tag | New saves only; user deletion is permanent |
+| Source tag format | Lowercase plain text (`linkedin`, `youtube`) |
+| Source chips placement | Replaces source section in filter sheet |
+| Source chips filter logic | AND with tag/read-status filters |
+| Date filter field | `Item.dateAdded` (save date) |
+| Date filter UI | Presets + custom date range pickers |
+
+### Phase 3 progress
+- [x] F1 multi-select + batch actions — `HomeFeedView` + `CardView` updated. Design revised per wireframe v3 (`Documents/mutliselect_card_design.md`): selection circle left of thumbnail, teal-tint card bg when selected, white badge/pill bg when selected, inline count title. `LinkPreviewFetcher.nonisolated` removed (Swift 6 `@MainActor` conflict with `LPMetadataProvider`).
+- [x] F2 auto source tag — `Item.sourceTag(from:)` added to `Item.swift`; `ShareEntryView.save()` injects tag at index 0.
+- [x] F3 source chips on main page — `sourceChipsRow` added to `HomeFeedView`; `sourcesSection` + `allSources` param removed from `FilterSheetView`; sources excluded from `activeCount`.
+- [x] F4 date filter — `DatePreset` enum + `customDateFrom`/`customDateTo` added to `FilterState`; `dateSection` added to `FilterSheetView` with preset chips + conditional custom `DatePicker` rows.
+
 ## 5. Progress Log
 - **2026-09-20** — Renamed project MyApp → AggregatorBuddy. Read spec + wireframes. Resolved all open questions. Created this plan.md.
 - **2026-09-20** — Phase 0–2 complete. Project settings: bundle ID `com.nitishsharma.aggregatorbuddy`, iOS 17.0, iOS-only. Wrote data model + shared container, full main-app UI (feed/card/filter/detail/empty), theme, helpers. Used skills: `swiftdata`, `swiftui-patterns`.
@@ -144,3 +172,4 @@ Detail view keeps the **large 180pt banner image** (read mode). Fetch switched t
 - **2026-09-20** — User created the extension target; Xcode used a synchronized folder group (Swift files auto-included) but reverted Info.plist to the storyboard template. With Xcode closed, fixed on disk: Info.plist → principal-class, removed storyboard, ext deployment target 27→17, added `CODE_SIGN_ENTITLEMENTS` (both configs) + entitlements membership exception. Both targets' entitlements confirmed to share `group.com.nitishsharma.aggregatorbuddy`.
 - **2026-09-20** — ✅ **Phase 3 complete.** Two more gotchas fixed: (1) Xcode had overwritten `ShareViewController.swift` with its `SLComposeServiceViewController` template during target creation — rewrote with the SwiftUI-hosting version; (2) added missing `import SwiftData`. Full flow verified: Safari share → SwiftUI form → Save → item appears in app feed. **All of Phases 0–3 done and working end to end.** Next: Phase 4 acceptance-criteria verification.
 - **2026-09-20** — ✅ **Phase 4 complete — Phase 1 of the app is DONE.** Code-audited all 12 criteria, fixed the detail-delete stale-ref bug, user verified every criterion (incl. delete-from-detail, tap/long-press, filters, plain-text fallback) working in the simulator. 🎉
+- **2026-09-25** — Phase 3 (new feature batch) designed and coded. F1 multi-select, F2 auto source tag, F3 source chips on main page, F4 date filter in sheet. Wireframe v3 referenced for F1 card design (`Documents/mutliselect_card_design.md`). Fixed Swift 6 concurrency warning in `LinkPreviewFetcher` (removed `nonisolated` — `LPMetadataProvider.init` is `@MainActor` in newer SDKs). Awaiting device verification.

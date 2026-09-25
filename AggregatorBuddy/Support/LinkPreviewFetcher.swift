@@ -4,16 +4,13 @@ import UIKit
 
 /// Fetches a link's preview image + title using Apple's LinkPresentation
 /// framework. Network call — used once per item, then cached on the `Item`.
-///
-/// `nonisolated` so it can run concurrently off the main actor (the project
-/// defaults to MainActor isolation).
 enum LinkPreviewFetcher {
     struct Result: Sendable {
         var imageData: Data?
         var title: String?
     }
 
-    nonisolated static func fetch(_ urlString: String) async -> Result {
+    static func fetch(_ urlString: String) async -> Result {
         let trimmed = urlString.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return Result() }
 
@@ -44,7 +41,7 @@ enum LinkPreviewFetcher {
 
 private extension NSItemProvider {
     /// Load this provider's image as JPEG data, or nil.
-    nonisolated func asImageData() async -> Data? {
+    func asImageData() async -> Data? {
         guard canLoadObject(ofClass: UIImage.self) else { return nil }
         return await withCheckedContinuation { continuation in
             _ = loadObject(ofClass: UIImage.self) { object, _ in
