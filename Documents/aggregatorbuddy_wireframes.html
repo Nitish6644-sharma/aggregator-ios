@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>AggregatorBuddy — Wireframes</title>
+<style>
+  :root{
+    --bg:#FAFAF8;
+    --card:#FFFFFF;
+    --ink:#1C1C1E;
+    --ink-2:#6E6E73;
+    --teal:#2F6F5E;
+    --teal-tint:#E7F0EC;
+    --amber:#D9863F;
+    --amber-tint:#FBEDE1;
+    --red:#C1462F;
+    --red-tint:#FBEAE6;
+    --line:#E7E5E0;
+    --board-bg:#F0EEE9;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;background:var(--board-bg);
+    font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","SF Pro Display",Helvetica,Arial,sans-serif;
+    color:var(--ink);}
+
+  .board-header{
+    padding:40px 48px 8px;
+  }
+  .board-header h1{
+    font-size:22px; font-weight:600; margin:0 0 4px; letter-spacing:-.01em;
+  }
+  .board-header p{
+    margin:0; color:var(--ink-2); font-size:14px; max-width:560px; line-height:1.5;
+  }
+  .swatches{ display:flex; gap:10px; margin-top:18px; }
+  .swatch{ display:flex; align-items:center; gap:6px; font-size:11px; color:var(--ink-2); }
+  .swatch i{ width:14px; height:14px; border-radius:4px; display:inline-block; border:1px solid rgba(0,0,0,.06); }
+
+  .board{
+    display:flex;
+    gap:34px;
+    padding:32px 48px 80px;
+    overflow-x:auto;
+    align-items:flex-start;
+  }
+  .frame-col{ flex:0 0 auto; width:300px; }
+  .frame-label{
+    font-size:12px; font-weight:600; color:var(--ink); margin-bottom:4px;
+  }
+  .frame-sub{
+    font-size:11px; color:var(--ink-2); margin-bottom:14px; line-height:1.4; min-height:28px;
+  }
+
+  /* --- iPhone chrome --- */
+  .phone{
+    width:300px; height:648px;
+    background:var(--card);
+    border-radius:44px;
+    border:9px solid #111214;
+    position:relative;
+    overflow:hidden;
+    box-shadow:0 18px 40px -14px rgba(0,0,0,.28), 0 2px 6px rgba(0,0,0,.08);
+  }
+  .statusbar{
+    height:44px; display:flex; align-items:center; justify-content:space-between;
+    padding:0 22px; font-size:12px; font-weight:600; color:var(--ink); position:relative; z-index:5;
+    background:var(--bg);
+  }
+  .island{
+    position:absolute; top:10px; left:50%; transform:translateX(-50%);
+    width:84px; height:22px; background:#0B0B0C; border-radius:14px; z-index:6;
+  }
+  .home-indicator{
+    position:absolute; bottom:6px; left:50%; transform:translateX(-50%);
+    width:110px; height:4px; border-radius:3px; background:#111; opacity:.8;
+  }
+  .screen{
+    position:absolute; top:44px; left:0; right:0; bottom:0;
+    background:var(--bg); overflow:hidden;
+  }
+
+  /* --- shared UI bits --- */
+  .app-header{
+    padding:6px 18px 10px; background:var(--bg);
+  }
+  .app-title{ font-size:20px; font-weight:700; letter-spacing:-.01em; }
+  .search-bar{
+    margin:10px 18px 0; height:36px; border-radius:10px; background:#EFEDE8;
+    display:flex; align-items:center; gap:6px; padding:0 12px; font-size:13px; color:var(--ink-2);
+  }
+  .search-bar svg{ flex:0 0 auto; }
+
+  .chip-row{
+    display:flex; gap:8px; padding:12px 18px 10px; overflow-x:auto;
+  }
+  .chip{
+    font-size:11.5px; padding:6px 12px; border-radius:100px; white-space:nowrap;
+    background:var(--card); border:1px solid var(--line); color:var(--ink-2);
+  }
+  .chip.active{ background:var(--teal); color:#fff; border-color:var(--teal); }
+  .chip.clear{ color:var(--red); border-color:transparent; background:transparent; padding-left:4px; }
+
+  .search-row{
+    display:flex; align-items:center; gap:10px; padding:10px 18px 6px;
+  }
+  .search-row .search-bar{ margin:0; flex:1; }
+  .filter-btn{
+    position:relative; flex:0 0 auto; width:36px; height:36px; border-radius:10px;
+    background:#EFEDE8; display:flex; align-items:center; justify-content:center; font-size:15px;
+  }
+  .filter-btn.active{ background:var(--teal-tint); }
+  .filter-badge{
+    position:absolute; top:-4px; right:-4px; min-width:16px; height:16px; border-radius:8px;
+    background:var(--teal); color:#fff; font-size:9.5px; font-weight:700;
+    display:flex; align-items:center; justify-content:center; padding:0 4px; border:2px solid var(--bg);
+  }
+
+  /* --- filter sheet fields --- */
+  .filter-section{ margin-bottom:16px; }
+  .filter-section .k{ font-size:10.5px; color:var(--ink-2); font-weight:700; letter-spacing:.02em; margin-bottom:8px; }
+  .filter-options{ display:flex; gap:8px; flex-wrap:wrap; }
+  .filter-chip{
+    font-size:11.5px; padding:7px 13px; border-radius:100px; border:1px solid var(--line);
+    background:var(--card); color:var(--ink-2);
+  }
+  .filter-chip.on{ background:var(--teal); color:#fff; border-color:var(--teal); }
+  .segmented{
+    display:flex; background:#EFEDE8; border-radius:9px; padding:3px;
+  }
+  .segmented .seg{ flex:1; text-align:center; padding:7px 0; font-size:12px; color:var(--ink-2); border-radius:7px; font-weight:600; }
+  .segmented .seg.on{ background:var(--card); color:var(--ink); box-shadow:0 1px 2px rgba(0,0,0,.08); }
+  .sheet-actions{ display:flex; gap:10px; margin-top:22px; }
+  .sheet-actions .btn{ flex:1; margin-top:0; }
+  .btn.secondary{ background:#EFEDE8; color:var(--ink); }
+
+  .list{ padding:2px 14px 20px; display:flex; flex-direction:column; gap:10px; overflow-y:auto; height:calc(100% - 118px); }
+
+  .item-card{
+    background:var(--card); border-radius:14px; padding:12px 14px; border:1px solid var(--line);
+    position:relative;
+  }
+  .item-top{ display:flex; align-items:flex-start; justify-content:space-between; gap:8px; }
+  .item-title{ font-size:14px; font-weight:600; line-height:1.35; }
+  .item-title.unread{ font-weight:700; }
+  .dot{ width:7px; height:7px; border-radius:50%; background:var(--teal); flex:0 0 auto; margin-top:5px; }
+  .dot.read{ background:transparent; border:1px solid var(--line); }
+  .item-meta{ display:flex; align-items:center; gap:8px; margin-top:6px; }
+  .source-badge{
+    font-size:10.5px; color:var(--teal); background:var(--teal-tint); padding:3px 8px; border-radius:6px; font-weight:600;
+  }
+  .date-txt{ font-size:11px; color:var(--ink-2); }
+  .tag-row{ display:flex; gap:6px; margin-top:9px; overflow-x:auto; }
+  .tag-pill{
+    font-size:10.5px; color:var(--ink-2); background:#F1F0EC; padding:4px 9px; border-radius:100px; white-space:nowrap;
+  }
+
+  .swipe-hint{
+    position:absolute; right:-2px; top:14px; bottom:14px; width:64px; border-radius:0 14px 14px 0;
+    background:var(--red-tint); color:var(--red); font-size:10px; font-weight:600;
+    display:flex; align-items:center; justify-content:center; opacity:0; 
+  }
+
+  /* --- empty state --- */
+  .empty-wrap{
+    height:calc(100% - 96px); display:flex; flex-direction:column; align-items:center; justify-content:center;
+    padding:0 36px; text-align:center; gap:10px;
+  }
+  .empty-icon{
+    width:56px; height:56px; border-radius:16px; background:var(--teal-tint);
+    display:flex; align-items:center; justify-content:center; margin-bottom:6px;
+  }
+  .empty-title{ font-size:16px; font-weight:700; }
+  .empty-sub{ font-size:12.5px; color:var(--ink-2); line-height:1.5; }
+
+  /* --- share sheet --- */
+  .sheet-shade{ position:absolute; inset:0; background:rgba(20,20,20,.28); }
+  .sheet{
+    position:absolute; left:0; right:0; bottom:0; top:150px;
+    background:var(--card); border-radius:22px 22px 0 0; padding:14px 18px 20px;
+    box-shadow:0 -8px 24px rgba(0,0,0,.12);
+  }
+  .sheet-grabber{ width:36px; height:4px; background:var(--line); border-radius:3px; margin:0 auto 12px; }
+  .sheet-head{ display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; }
+  .sheet-head .cancel{ color:var(--ink-2); font-size:13px; }
+  .sheet-head .title{ font-size:14px; font-weight:700; }
+  .sheet-head .save{ color:var(--teal); font-weight:700; font-size:13px; }
+  .field{ margin-bottom:12px; }
+  .field label{ font-size:10.5px; color:var(--ink-2); font-weight:600; letter-spacing:.01em; }
+  .field .box{
+    margin-top:5px; background:#F1F0EC; border-radius:9px; padding:9px 11px; font-size:12.5px; color:var(--ink);
+    min-height:16px;
+  }
+  .field .box.muted{ color:var(--ink-2); }
+  .field .box.tall{ min-height:44px; }
+  .field .box.url{ color:var(--teal); font-size:11.5px; word-break:break-all; }
+
+  /* --- detail view --- */
+  .detail-header{
+    display:flex; align-items:center; justify-content:space-between; padding:8px 16px 4px;
+  }
+  .back-arrow{ font-size:20px; color:var(--teal); }
+  .detail-edit{ font-size:13px; color:var(--teal); font-weight:600; }
+  .detail-body{ padding:10px 20px 20px; }
+  .detail-title{ font-size:19px; font-weight:700; line-height:1.3; margin-bottom:8px; }
+  .detail-row{ padding:10px 0; border-bottom:1px solid var(--line); }
+  .detail-row .k{ font-size:10.5px; color:var(--ink-2); font-weight:600; margin-bottom:4px; }
+  .detail-row .v{ font-size:13px; }
+  .detail-row .v.link{ color:var(--teal); }
+  .detail-tags{ display:flex; gap:6px; flex-wrap:wrap; }
+  .btn{
+    margin-top:16px; height:42px; border-radius:11px; display:flex; align-items:center; justify-content:center;
+    font-size:13.5px; font-weight:700;
+  }
+  .btn.primary{ background:var(--teal); color:#fff; }
+  .btn.destructive{ background:var(--red-tint); color:var(--red); margin-top:10px; }
+
+  /* --- alert overlay --- */
+  .alert-shade{ position:absolute; inset:0; background:rgba(20,20,20,.35); display:flex; align-items:center; justify-content:center; }
+  .alert-box{
+    width:230px; background:#F6F5F1; border-radius:16px; padding:18px 16px; text-align:center;
+    box-shadow:0 10px 30px rgba(0,0,0,.2);
+  }
+  .alert-title{ font-size:14px; font-weight:700; margin-bottom:6px; }
+  .alert-sub{ font-size:11.5px; color:var(--ink-2); line-height:1.4; margin-bottom:14px; }
+  .alert-btns{ display:flex; flex-direction:column; gap:8px; }
+  .alert-btn{ height:36px; border-radius:9px; display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:600; }
+  .alert-btn.cancel{ background:#EAE8E3; color:var(--ink); }
+  .alert-btn.delete{ background:var(--red); color:#fff; }
+</style>
+</head>
+<body>
+
+  <div class="board-header">
+    <h1>AggregatorBuddy — Phase 1 Wireframes</h1>
+    <p>Calm, quiet visual language on purpose — the app's job is to hold onto links without competing for attention the way the source apps do. iOS-native type, deep teal accent, generous whitespace.</p>
+    <div class="swatches">
+      <div class="swatch"><i style="background:#FAFAF8"></i>Background</div>
+      <div class="swatch"><i style="background:#FFFFFF;border-color:#ddd"></i>Card</div>
+      <div class="swatch"><i style="background:#1C1C1E"></i>Ink</div>
+      <div class="swatch"><i style="background:#6E6E73"></i>Ink secondary</div>
+      <div class="swatch"><i style="background:#2F6F5E"></i>Teal accent</div>
+      <div class="swatch"><i style="background:#D9863F"></i>Amber</div>
+      <div class="swatch"><i style="background:#C1462F"></i>Red / destructive</div>
+    </div>
+  </div>
+
+  <div class="board">
+
+    <!-- 1. HOME FEED -->
+    <div class="frame-col">
+      <div class="frame-label">1 · Home Feed</div>
+      <div class="frame-sub">Search bar + filter icon (badge shows active filter count). Cards newest first, absolute dates.</div>
+      <div class="phone">
+        <div class="island"></div>
+        <div class="statusbar"><span>9:41</span><span>􀛨 􀙇</span></div>
+        <div class="screen">
+          <div class="app-header"><div class="app-title">Saved</div></div>
+          <div class="search-row">
+            <div class="search-bar">🔍  Search title, source, notes</div>
+            <div class="filter-btn active">⚙<span class="filter-badge">2</span></div>
+          </div>
+          <div class="list" style="margin-top:8px;">
+            <div class="item-card">
+              <div class="item-top">
+                <div class="item-title unread">Why local-first apps are having a moment</div>
+                <div class="dot"></div>
+              </div>
+              <div class="item-meta"><span class="source-badge">Article</span><span class="date-txt">Sep 20, 2026</span></div>
+              <div class="tag-row"><span class="tag-pill">tech</span><span class="tag-pill">must-read</span></div>
+            </div>
+            <div class="item-card">
+              <div class="item-top">
+                <div class="item-title unread">SwiftData in practice — full walkthrough</div>
+                <div class="dot"></div>
+              </div>
+              <div class="item-meta"><span class="source-badge">YouTube</span><span class="date-txt">Sep 19, 2026</span></div>
+              <div class="tag-row"><span class="tag-pill">tech</span><span class="tag-pill">tutorial</span></div>
+              <div class="swipe-hint">Delete</div>
+            </div>
+            <div class="item-card">
+              <div class="item-top">
+                <div class="item-title">A short note on rest</div>
+                <div class="dot read"></div>
+              </div>
+              <div class="item-meta"><span class="source-badge">LinkedIn</span><span class="date-txt">Sep 17, 2026</span></div>
+              <div class="tag-row"><span class="tag-pill">spiritual</span></div>
+            </div>
+            <div class="item-card">
+              <div class="item-top">
+                <div class="item-title">Instagram reel — sourdough starter tips</div>
+                <div class="dot"></div>
+              </div>
+              <div class="item-meta"><span class="source-badge">Instagram</span><span class="date-txt">Sep 15, 2026</span></div>
+              <div class="tag-row"><span class="tag-pill">cooking</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="home-indicator"></div>
+      </div>
+    </div>
+
+    <!-- 2. FILTER SHEET -->
+    <div class="frame-col">
+      <div class="frame-label">2 · Filter Sheet</div>
+      <div class="frame-sub">Opens from the filter icon. Tag + source are multi-select, read status is segmented. Apply / Clear at bottom.</div>
+      <div class="phone">
+        <div class="island"></div>
+        <div class="statusbar"><span>9:41</span><span>􀛨 􀙇</span></div>
+        <div class="screen">
+          <div class="sheet-shade"></div>
+          <div class="sheet" style="top:190px;">
+            <div class="sheet-grabber"></div>
+            <div class="sheet-head">
+              <span class="cancel" style="color:var(--red)">Clear</span>
+              <span class="title">Filters</span>
+              <span class="save">Apply</span>
+            </div>
+
+            <div class="filter-section">
+              <div class="k">READ STATUS</div>
+              <div class="segmented">
+                <div class="seg on">All</div>
+                <div class="seg">Unread</div>
+                <div class="seg">Read</div>
+              </div>
+            </div>
+
+            <div class="filter-section">
+              <div class="k">TAGS</div>
+              <div class="filter-options">
+                <div class="filter-chip on">tech</div>
+                <div class="filter-chip">must-read</div>
+                <div class="filter-chip">tutorial</div>
+                <div class="filter-chip">spiritual</div>
+                <div class="filter-chip">cooking</div>
+              </div>
+            </div>
+
+            <div class="filter-section">
+              <div class="k">SOURCE</div>
+              <div class="filter-options">
+                <div class="filter-chip">Article</div>
+                <div class="filter-chip on">YouTube</div>
+                <div class="filter-chip">LinkedIn</div>
+                <div class="filter-chip">Instagram</div>
+              </div>
+            </div>
+
+            <div class="sheet-actions">
+              <div class="btn secondary">Clear filters</div>
+              <div class="btn primary">Apply</div>
+            </div>
+          </div>
+        </div>
+        <div class="home-indicator"></div>
+      </div>
+    </div>
+
+    <!-- 3. EMPTY STATE -->
+    <div class="frame-col">
+      <div class="frame-label">3 · Empty State</div>
+      <div class="frame-sub">Shown in place of the list when nothing has been saved yet.</div>
+      <div class="phone">
+        <div class="island"></div>
+        <div class="statusbar"><span>9:41</span><span>􀛨 􀙇</span></div>
+        <div class="screen">
+          <div class="app-header"><div class="app-title">Saved</div></div>
+          <div class="search-row" style="opacity:.4">
+            <div class="search-bar">🔍  Search title, source, notes</div>
+            <div class="filter-btn">⚙</div>
+          </div>
+          <div class="empty-wrap">
+            <div class="empty-icon">📥</div>
+            <div class="empty-title">Nothing saved yet</div>
+            <div class="empty-sub">Share a link from any app — LinkedIn, YouTube, Instagram, Safari — and choose AggregatorBuddy to save it here.</div>
+          </div>
+        </div>
+        <div class="home-indicator"></div>
+      </div>
+    </div>
+
+    <!-- 3. SHARE EXTENSION SHEET -->
+    <div class="frame-col">
+      <div class="frame-label">4 · Share Extension Sheet</div>
+      <div class="frame-sub">Appears over the source app after tapping AggregatorBuddy in the share sheet.</div>
+      <div class="phone">
+        <div class="island"></div>
+        <div class="statusbar"><span>9:41</span><span>􀛨 􀙇</span></div>
+        <div class="screen">
+          <div class="sheet-shade"></div>
+          <div class="sheet">
+            <div class="sheet-grabber"></div>
+            <div class="sheet-head">
+              <span class="cancel">Cancel</span>
+              <span class="title">Save to AggregatorBuddy</span>
+              <span class="save">Save</span>
+            </div>
+            <div class="field">
+              <label>URL</label>
+              <div class="box url">linkedin.com/posts/reclaiming-focus-in-a…</div>
+            </div>
+            <div class="field">
+              <label>Title</label>
+              <div class="box muted">Untitled — tap to add a title</div>
+            </div>
+            <div class="field">
+              <label>Source</label>
+              <div class="box">LinkedIn</div>
+            </div>
+            <div class="field">
+              <label>Tags · comma separated</label>
+              <div class="box muted">tech, must-read</div>
+            </div>
+            <div class="field">
+              <label>Notes · optional</label>
+              <div class="box tall muted">Add a note for later…</div>
+            </div>
+          </div>
+        </div>
+        <div class="home-indicator"></div>
+      </div>
+    </div>
+
+    <!-- 4. CARD DETAIL / EDIT -->
+    <div class="frame-col">
+      <div class="frame-label">5 · Card Detail / Edit</div>
+      <div class="frame-sub">Opened from a card via long-press or detail tap. All fields editable.</div>
+      <div class="phone">
+        <div class="island"></div>
+        <div class="statusbar"><span>9:41</span><span>􀛨 􀙇</span></div>
+        <div class="screen">
+          <div class="detail-header">
+            <span class="back-arrow">‹ Saved</span>
+            <span class="detail-edit">Edit</span>
+          </div>
+          <div class="detail-body">
+            <div class="detail-title">SwiftData in practice — full walkthrough</div>
+            <div class="detail-row">
+              <div class="k">Url</div>
+              <div class="v link">youtube.com/watch?v=8x2f9k</div>
+            </div>
+            <div class="detail-row">
+              <div class="k">Source</div>
+              <div class="v">YouTube</div>
+            </div>
+            <div class="detail-row">
+              <div class="k">Tags</div>
+              <div class="detail-tags">
+                <span class="tag-pill">tech</span><span class="tag-pill">tutorial</span>
+              </div>
+            </div>
+            <div class="detail-row">
+              <div class="k">Notes</div>
+              <div class="v" style="color:var(--ink-2)">Watch before rebuilding the App Group container.</div>
+            </div>
+            <div class="detail-row">
+              <div class="k">Added</div>
+              <div class="v">Sep 19, 2026 · Unread</div>
+            </div>
+            <div class="btn primary">Open Link</div>
+            <div class="btn destructive">Delete Item</div>
+          </div>
+        </div>
+        <div class="home-indicator"></div>
+      </div>
+    </div>
+
+    <!-- 5. DELETE CONFIRMATION -->
+    <div class="frame-col">
+      <div class="frame-label">6 · Delete Confirmation</div>
+      <div class="frame-sub">Alert shown from swipe-to-delete or the Delete button in Detail view.</div>
+      <div class="phone">
+        <div class="island"></div>
+        <div class="statusbar"><span>9:41</span><span>􀛨 􀙇</span></div>
+        <div class="screen">
+          <div class="detail-header">
+            <span class="back-arrow">‹ Saved</span>
+            <span class="detail-edit" style="opacity:.3">Edit</span>
+          </div>
+          <div class="detail-body" style="opacity:.35">
+            <div class="detail-title">SwiftData in practice — full walkthrough</div>
+            <div class="detail-row"><div class="k">Url</div><div class="v link">youtube.com/watch?v=8x2f9k</div></div>
+          </div>
+          <div class="alert-shade">
+            <div class="alert-box">
+              <div class="alert-title">Delete this item?</div>
+              <div class="alert-sub">This cannot be undone. The link and its notes will be permanently removed.</div>
+              <div class="alert-btns">
+                <div class="alert-btn delete">Delete</div>
+                <div class="alert-btn cancel">Cancel</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="home-indicator"></div>
+      </div>
+    </div>
+
+  </div>
+
+</body>
+</html>
