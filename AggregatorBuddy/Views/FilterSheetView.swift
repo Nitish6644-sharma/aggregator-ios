@@ -1,21 +1,17 @@
 import SwiftUI
 
-enum ReadFilter: String, CaseIterable, Identifiable {
-    case all = "All", unread = "Unread", read = "Read"
-    var id: String { rawValue }
-}
-
 enum DatePreset: String, CaseIterable, Identifiable {
     case all = "All", today = "Today", last7 = "Last 7 Days", last30 = "Last 30 Days", custom = "Custom"
     var id: String { rawValue }
 }
 
-/// The set of active filters. Tags/sources use OR-within-category matching,
-/// combined with AND across categories and the search text (applied separately).
+/// The set of active filters. Read/unread now lives on the main feed tabs,
+/// so the sheet only owns tags, sources, and dates. Tags/sources use
+/// OR-within-category matching, combined with AND across categories and the
+/// search text (applied separately).
 struct FilterState: Equatable {
     var tags: Set<String> = []
     var sources: Set<String> = []
-    var readStatus: ReadFilter = .all
     var datePreset: DatePreset = .all
     var customDateFrom: Date = Calendar.current.date(byAdding: .day, value: -30, to: .now) ?? .now
     var customDateTo: Date = .now
@@ -24,19 +20,12 @@ struct FilterState: Equatable {
     var activeCount: Int {
         var n = 0
         if !tags.isEmpty { n += 1 }
-        if readStatus != .all { n += 1 }
         if datePreset != .all { n += 1 }
         return n
     }
     var isActive: Bool { activeCount > 0 }
 
     func matches(_ item: Item) -> Bool {
-        switch readStatus {
-        case .all: break
-        case .unread where item.isRead: return false
-        case .read where !item.isRead: return false
-        default: break
-        }
         if !sources.isEmpty, !sources.contains(item.source) { return false }
         if !tags.isEmpty, tags.isDisjoint(with: Set(item.tags)) { return false }
 
@@ -79,7 +68,6 @@ struct FilterSheetView: View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 22) {
-                    readStatusSection
                     dateSection
                     if !allTags.isEmpty { tagsSection }
                 }
@@ -100,16 +88,6 @@ struct FilterSheetView: View {
                 }
             }
             .safeAreaInset(edge: .bottom) { bottomActions }
-        }
-    }
-
-    private var readStatusSection: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            sectionLabel("READ STATUS")
-            Picker("Read status", selection: $draft.readStatus) {
-                ForEach(ReadFilter.allCases) { Text($0.rawValue).tag($0) }
-            }
-            .pickerStyle(.segmented)
         }
     }
 
