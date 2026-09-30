@@ -12,6 +12,8 @@ struct HomeFeedView: View {
     @State private var showingFilter = false
     @State private var selectedItem: Item?
     @State private var itemPendingDelete: Item?
+    // Read/Unread tabs. The Read tab is active by default.
+    @State private var showReadTab = true
 
     // Multi-select state
     @State private var isEditing = false
@@ -23,6 +25,9 @@ struct HomeFeedView: View {
             VStack(spacing: 0) {
                 if !allSources.isEmpty {
                     sourceChipsRow
+                }
+                if !items.isEmpty {
+                    readTabsRow
                 }
                 if items.isEmpty {
                     EmptyStateView()
@@ -192,6 +197,20 @@ struct HomeFeedView: View {
         }
     }
 
+    // MARK: - Read/Unread tabs
+
+    private var readTabsRow: some View {
+        Picker("Read or unread", selection: $showReadTab) {
+            Text("Read").tag(true)
+            Text("Unread").tag(false)
+        }
+        .pickerStyle(.segmented)
+        .padding(.horizontal, 14)
+        .padding(.top, 8)
+        .padding(.bottom, 2)
+        .background(Theme.bg)
+    }
+
     // MARK: - Source chips
 
     private var sourceChipsRow: some View {
@@ -217,7 +236,7 @@ struct HomeFeedView: View {
 
     private var filteredItems: [Item] {
         items.filter { item in
-            filter.matches(item) && matchesSearch(item)
+            item.isRead == showReadTab && filter.matches(item) && matchesSearch(item)
         }
     }
 
